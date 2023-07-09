@@ -1,6 +1,7 @@
 import unittest
 from mocks import MockUart
 import xbee_frame
+import xbee_frame_builder as builder
 from xbee_serial import XbeeSerial
 
 class TestXbeeSerial(unittest.TestCase):
@@ -14,22 +15,26 @@ class TestXbeeSerial(unittest.TestCase):
         frame = xbs.receive()
         assert(frame is not None)
         # Should be unescaped
+        assert(not frame.Escaped)
         assert(frame.Data == packet)
+        assert(frame.get_frame_type() == xbee_frame.FRAME_TYPE_RECEIVE)
         assert(frame.get_receive_data().decode() == "C=24.90&P=1027.66\r")
         assert(frame.get_source_address() == "0x0014A10040C3549D")
+        assert(builder.validate_checksum(frame.Data, frame.Escaped))
 
     def test_receive_escaped(self):
-        packet = bytes([0x7E, 0x00, 0x7D, 0x33, 0x10, 0x01,
-                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                           0xFF, 0xFE, 0x00, 0x00, 0x62, 0x6C, 0x69, 0x6E, 0x6B, 0xE1])
-
+        packet = bytes([0x7E, 0x00, 0x7D, 0x31, 0x90, 0x00, 0x7D, 0x33, 0xA2, 0x00,
+                        0x40, 0x79, 0xF9, 0xE1, 0xFF, 0xFE, 0x01, 0x62, 0x6C, 0x69, 0x6E, 0x6B, 0x19])
         uart = MockUart(packet)
         xbs = XbeeSerial(uart, escaped=True)
         frame = xbs.receive()
         assert(frame is not None)
         # Should be unescaped.
+        assert(not frame.Escaped)
         assert(frame.Data != packet)
-        assert(frame.Data == b'~\x00\x13\x10\x01\x00\x00\x00\x00\x00\x00\x00\x00\xff\xfe\x00\x00blink\xe1')
+        assert(frame.Data == b'~\x00\x11\x90\x00\x13\xa2\x00@y\xf9\xe1\xff\xfe\x01blink\x19')
+        assert(frame.get_frame_type() == xbee_frame.FRAME_TYPE_RECEIVE)
+        assert(builder.validate_checksum(frame.Data, frame.Escaped))
 
 if __name__ == "__main__":
     unittest.main()

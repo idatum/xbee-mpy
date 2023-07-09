@@ -37,7 +37,7 @@ class TestXbeeFrame(unittest.TestCase):
 
     def test_unescaped_rx_frame_type(self):
         frame = xbee_frame.XbeeFrame(Unescaped_rx_packet, escaped=False)
-        assert(xbee_frame.FRAME_TYPE_RECEIVE == frame.frame_type())
+        assert(xbee_frame.FRAME_TYPE_RECEIVE == frame.get_frame_type())
 
 if __name__ == "__main__":
     unittest.main()

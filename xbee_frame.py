@@ -31,7 +31,7 @@ class XbeeFrame:
         # Unescaped frame only.
         if self._escaped:
             return None
-        return int(self._data[UNESCAPED_FRAME_DATA_OFFSET])
+        return self._data[UNESCAPED_FRAME_DATA_OFFSET]
 
     def get_receive_data(self) -> bytes:
         """Get data field of receive packet."""
